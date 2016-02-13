@@ -17,29 +17,28 @@ fmu.py - Flight Management Unit class
 
 # PID parameters (I is currently unused) ==========================================
 
-IMU_PITCH_ROLL_Kp       = .25   # original: .25
-IMU_PITCH_ROLL_Kd       = 0.1
+IMU_PITCH_ROLL_Kp  = .2   # original: .25
+IMU_PITCH_ROLL_Kd  = .025
+IMU_PITCH_ROLL_Ki  = 0
 
-IMU_YAW_Kp 	            = 1.0
-IMU_YAW_Kd 	            = 0.4
+IMU_YAW_Kp 	   = .3
+IMU_YAW_Kd 	   = .1
+IMU_YAW_Ki         = .01
 
 # We don't need K_d because we use first derivative
-ALTITUDE_Kp             = 11
-
-# Altitude hold z-pisition
-Hold_Pos                = 0.51
+ALTITUDE_Kp        = .5
+ALTITUDE_Kd        = .1
 
 # Empirical constants  ============================================================
 
-THRUST_BASELINE 	       = 5.335
-ROLL_DEMAND_FACTOR      = 0.1
-PITCH_DEMAND_FACTOR     = 0.1
-YAW_DEMAND_FACTOR       = 0.5
-CLIMB_DEMAND_FACTOR     = 0.5
+ROLL_DEMAND_FACTOR      = .1
+PITCH_DEMAND_FACTOR     = .1
+YAW_DEMAND_FACTOR       = .5
 
 # Imports =========================================================================
 
 from pidcontrol import Stability_PID_Controller, Yaw_PID_Controller, Hover_PID_Controller
+import math
 
 # FMU class ==================================================================
 
@@ -50,14 +49,19 @@ class FMU(object):
         Creates a new Quadrotor object.
         '''  
         # Create PD controllers for pitch, roll based on angles from Inertial Measurement Unit (IMU)
-        self.pitch_Stability_PID = Stability_PID_Controller(IMU_PITCH_ROLL_Kp, IMU_PITCH_ROLL_Kd)      
-        self.roll_Stability_PID  = Stability_PID_Controller(IMU_PITCH_ROLL_Kp, IMU_PITCH_ROLL_Kd)
+        self.pitch_Stability_PID = Stability_PID_Controller(IMU_PITCH_ROLL_Kp, IMU_PITCH_ROLL_Kd, IMU_PITCH_ROLL_Ki)      
+        self.roll_Stability_PID  = Stability_PID_Controller(IMU_PITCH_ROLL_Kp, IMU_PITCH_ROLL_Kd, IMU_PITCH_ROLL_Ki)
 
         # Special handling for yaw from IMU
-        self.yaw_IMU_PID   = Yaw_PID_Controller(IMU_YAW_Kp, IMU_YAW_Kd)
+        #self.yaw_IMU_PID   = Yaw_PID_Controller(IMU_YAW_Kp, IMU_YAW_Kd, IMU_YAW_Ki)
+        self.yaw_IMU_PID   = Hover_PID_Controller(IMU_YAW_Kp, IMU_YAW_Kd, IMU_YAW_Ki)
 
         # Create PD controller for altitude-hold
-        self.altitude_PID = Hover_PID_Controller(ALTITUDE_Kp)
+        self.altitude_PID = Hover_PID_Controller(ALTITUDE_Kp, ALTITUDE_Kd)
+        
+        # Altitude hold z-pisition
+        self.target_altitude = 0.5
+        self.target_yaw = 0.0
 
     def getMotors(self, imuAngles, altitude, controllerInput, timestep):
         '''
@@ -65,32 +69,37 @@ class FMU(object):
 
             imuAngles      IMU pitch, roll, yaw angles in radians
             altitude       altitude in meters
-            gpsCoords      GPS coordinates (latitude, longitude) in degrees
             controllInput  (pitchDemand, rollDemand, yawDemand, climbDemand, switch) 
             timestep       timestep in seconds
         '''
         # Convert flight-stick controllerInput
-        pitchDemand = controllerInput[0] * PITCH_DEMAND_FACTOR
-        rollDemand  = controllerInput[1] * ROLL_DEMAND_FACTOR
-        yawDemand   = controllerInput[2] * YAW_DEMAND_FACTOR
-        climbDemand = controllerInput[3] * CLIMB_DEMAND_FACTOR
+        pitchDemand = controllerInput[0]
+        rollDemand  = controllerInput[1]
+        #yawDemand   = controllerInput[2]
+        yawDemand   = 0.0
+        #climbDemand = controllerInput[3]
+        climbDemand = 0.0
 
         # Compute altitude hold if we want it
-        altitudeHold = self.altitude_PID.getCorrection(altitude,timestep=timestep)
+        altitudeCorrection = self.altitude_PID.getCorrection(altitude, self.target_altitude, timestep)
 
         # PID control for pitch, roll based on angles from Inertial Measurement Unit (IMU)
         imuPitchCorrection = self.pitch_Stability_PID.getCorrection(imuAngles[0], timestep)      
         imuRollCorrection  = self.roll_Stability_PID.getCorrection(-imuAngles[1], timestep)
 
         # Special PID for yaw
-        yawCorrection   = self.yaw_IMU_PID.getCorrection(imuAngles[2], yawDemand, timestep)
-              
+        #yawCorrection   = self.yaw_IMU_PID.getCorrection(imuAngles[2], yawDemand, timestep)
+        yawCorrection   = self.yaw_IMU_PID.getCorrection(imuAngles[2], self.target_yaw, timestep)
+        
         # Overall pitch, roll correction is sum of stability and position-hold 
         pitchCorrection = imuPitchCorrection
         rollCorrection  = imuRollCorrection
         
+        if altitudeCorrection != 0:
+            climbDemand = 0.5 + altitudeCorrection
+            
         # Overall thrust is baseline plus climb demand plus correction from PD controller
-        thrust = THRUST_BASELINE + climbDemand + altitudeHold
+        thrust = 4*math.sqrt(math.sqrt(climbDemand)) + 2
         #print('thrust: ' + str(climbDemand) + ' ' + str(altitudeHold) + ' ' + str(altitude))
         
         # Change the thrust values depending upon the pitch, roll, yaw and climb values 
@@ -106,6 +115,8 @@ class FMU(object):
         thrusts = [0]*4
  
         for i in range(4):
-            thrusts[i] = (thrust + rsign[i]*rollDemand + psign[i]*pitchDemand + ysign[i]*yawDemand)*(1 + rsign[i]*rollCorrection + psign[i]*pitchCorrection + ysign[i]*yawCorrection) 
+            thrusts[i] = (thrust + rsign[i]*rollDemand*ROLL_DEMAND_FACTOR \
+                                 + psign[i]*pitchDemand*PITCH_DEMAND_FACTOR \
+                                 + ysign[i]*yawDemand*YAW_DEMAND_FACTOR)*(1 + rsign[i]*rollCorrection + psign[i]*pitchCorrection + ysign[i]*yawCorrection) 
 
         return thrusts
