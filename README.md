@@ -1,5 +1,5 @@
 # dqn-vrep
-Simple scripts concern about continuous action DQN agent for VREP simluating domain
+Simple scripts concern about continuous actions of DQN agent for VREP simluating domain
 
 This repo requires following to work:
 
