@@ -24,7 +24,7 @@
 # along with the REMOTE API.  If not, see <http://www.gnu.org/licenses/>.
 # -------------------------------------------------------------------
 #
-# This file was automatically created for V-REP release V3.2.2 Rev1 on September 5th 2015
+# This file was automatically created for V-REP release V3.2.3 rev4 on December 21st 2015
 
 import platform
 import struct
@@ -105,6 +105,7 @@ c_SetFloatingParameter      = ct.CFUNCTYPE(ct.c_int32,ct.c_int32, ct.c_int32, ct
 c_GetStringParameter        = ct.CFUNCTYPE(ct.c_int32,ct.c_int32, ct.c_int32, ct.POINTER(ct.POINTER(ct.c_char)), ct.c_int32)(("simxGetStringParameter", libsimx))
 c_GetCollisionHandle        = ct.CFUNCTYPE(ct.c_int32,ct.c_int32, ct.POINTER(ct.c_char), ct.POINTER(ct.c_int32), ct.c_int32)(("simxGetCollisionHandle", libsimx))
 c_GetDistanceHandle         = ct.CFUNCTYPE(ct.c_int32,ct.c_int32, ct.POINTER(ct.c_char), ct.POINTER(ct.c_int32), ct.c_int32)(("simxGetDistanceHandle", libsimx))
+c_GetCollectionHandle       = ct.CFUNCTYPE(ct.c_int32,ct.c_int32, ct.POINTER(ct.c_char), ct.POINTER(ct.c_int32), ct.c_int32)(("simxGetCollectionHandle", libsimx))
 c_ReadCollision             = ct.CFUNCTYPE(ct.c_int32,ct.c_int32, ct.c_int32, ct.POINTER(ct.c_ubyte), ct.c_int32)(("simxReadCollision", libsimx))
 c_ReadDistance              = ct.CFUNCTYPE(ct.c_int32,ct.c_int32, ct.c_int32, ct.POINTER(ct.c_float), ct.c_int32)(("simxReadDistance", libsimx))
 c_RemoveObject              = ct.CFUNCTYPE(ct.c_int32,ct.c_int32, ct.c_int32, ct.c_int32)(("simxRemoveObject", libsimx))
@@ -710,6 +711,16 @@ def simxGetCollisionHandle(clientID, collisionObjectName, operationMode):
     if (sys.version_info[0] == 3) and (type(collisionObjectName) is str):
         collisionObjectName=collisionObjectName.encode('utf-8')
     return c_GetCollisionHandle(clientID, collisionObjectName, ct.byref(handle), operationMode), handle.value
+
+def simxGetCollectionHandle(clientID, collectionName, operationMode):
+    '''
+    Please have a look at the function description/documentation in the V-REP user manual
+    '''
+
+    handle = ct.c_int()
+    if (sys.version_info[0] == 3) and (type(collectionName) is str):
+        collectionName=collectionName.encode('utf-8')
+    return c_GetCollectionHandle(clientID, collectionName, ct.byref(handle), operationMode), handle.value
 
 def simxGetDistanceHandle(clientID, distanceObjectName, operationMode):
     '''

@@ -24,7 +24,7 @@
 # along with the REMOTE API.  If not, see <http://www.gnu.org/licenses/>.
 # -------------------------------------------------------------------
 #
-# This file was automatically created for V-REP release V3.2.2 Rev1 on September 5th 2015
+# This file was automatically created for V-REP release V3.2.3 rev4 on December 21st 2015
 
 #constants
 #Scene object types. Values are serialized
@@ -471,6 +471,7 @@ sim_boolparam_exit_request						=41
 sim_boolparam_play_toolbarbutton_enabled		=42
 sim_boolparam_pause_toolbarbutton_enabled		=43
 sim_boolparam_stop_toolbarbutton_enabled		=44
+sim_boolparam_waiting_for_trigger				=45
 
 
 # Integer parameters 
