@@ -107,9 +107,9 @@ class DQN_class:
         self.optim_actor.setup(self.actor)
         
 #        self.optim_critic.add_hook(chainer.optimizer.WeightDecay(0.00001))
-        self.optim_critic.add_hook(chainer.optimizer.GradientClipping(10))
+#        self.optim_critic.add_hook(chainer.optimizer.GradientClipping(10))
 #        self.optim_actor.add_hook(chainer.optimizer.WeightDecay(0.00001))
-        self.optim_actor.add_hook(chainer.optimizer.GradientClipping(10))
+#        self.optim_actor.add_hook(chainer.optimizer.GradientClipping(10))
 
         # History Data :  D=[s, a, r, s_dash, end_episode_flag]
         self.D = [np.zeros((self.data_size, self.num_of_states), dtype=np.float32),
