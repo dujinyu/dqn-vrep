@@ -1,5 +1,9 @@
-# dqn-vrep
-Simple scripts concern about continuous actions of DQN agent for VREP simluating domain
+# DQN-vrep
+Simple scripts concern about continuous actions of DQN agent for VREP simluating domain.
+
+Scripts implemented based on:
+
+- Timothy P. Lillicrap *et al.*, "[Continuous control with deep reinforcement learning](http://arxiv.org/pdf/1509.02971v4.pdf)"
 
 This repo works under following conditions:
 
