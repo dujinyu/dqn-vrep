@@ -1,5 +1,5 @@
 # DQN-vrep
-Simple scripts concern about continuous actions of DQN agent for VREP simluating domain.
+Simple under-testing scripts concern about continuous actions of DQN agent for VREP simluating domain.
 
 Scripts implemented based on:
 
