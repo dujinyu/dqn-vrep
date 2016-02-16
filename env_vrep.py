@@ -40,6 +40,7 @@ class vrep_environment(Environment):
                             + [[-MAX_ANG, MAX_ANG]] * 3)
     action_ranges = np.array([[-1., 1.]] * 2)
     discount_factor=.99
+    num_sim_steps = 0
     
     def env_init(self):
         print ('VREP Environmental Program Started')
@@ -108,6 +109,7 @@ class vrep_environment(Environment):
                                        "StopSim Error"
         time.sleep(0.1)
         self.start_simulation()
+        self.num_sim_steps = 0
         
     def proceed_simulation(self, sim_steps=1):
         for t in range(sim_steps):
@@ -164,6 +166,7 @@ class vrep_environment(Environment):
         """
 #        self.prevState = self.state
         #print("oldState: "+str(self.state))
+        self.num_sim_steps += 1
         action = np.asarray(doubleAction,dtype=np.float32)
         #print("takeAction: "+str(doubleAction))
         
@@ -189,6 +192,7 @@ class vrep_environment(Environment):
            np.any(self.state_ranges[:,1] < self.state[:]):
 #            r = -1
             r = -np.sum(3.0 * self.state_ranges[:,1]**2)
+            r *= 6000-self.num_sim_steps
             terminate = True
         else:
 #            perr = np.linalg.norm(self.prevState[:2] - self.state_goal[:2])

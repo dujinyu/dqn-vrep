@@ -7,7 +7,7 @@ import numpy as np
 import rlglue.RLGlue as RLGlue
 
 max_Episode = 20000
-max_validEpisode = 7
+max_validEpisode = 5
 pass_validation = False
 whichEpisode = 0
 learningEpisode = 0

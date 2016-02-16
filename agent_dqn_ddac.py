@@ -101,8 +101,8 @@ class DQN_class:
         print "Initizlizing Optimizer"
         #self.optim_critic = optimizers.RMSpropGraves(lr=0.0001, alpha=0.95, momentum=0.95, eps=0.0001)
         #self.optim_actor = optimizers.RMSpropGraves(lr=0.0001, alpha=0.95, momentum=0.95, eps=0.0001)
-        self.optim_critic = optimizers.Adam(alpha=0.0001)
-        self.optim_actor = optimizers.Adam(alpha=0.0001)
+        self.optim_critic = optimizers.Adam(alpha=0.00001)
+        self.optim_actor = optimizers.Adam(alpha=0.00001)
         self.optim_critic.setup(self.critic)
         self.optim_actor.setup(self.actor)
         
