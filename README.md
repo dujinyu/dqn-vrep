@@ -1,6 +1,7 @@
 # DQN-vrep
 Simple under-testing scripts concern about continuous actions of DQN agent for VREP simluating domain.
-!!NOTE: The code is still very beta version, and will not guarantee to work
+
+NOTE: The code is very beta version, and will not guarantee to work
 
 Scripts implemented based on:
 
